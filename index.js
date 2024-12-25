@@ -4,7 +4,12 @@ import cors from "cors";
 import logger from "morgan";
 import { createServer } from "node:http";
 import { Server } from "socket.io";
-const client = createClient();
+
+const redis_url = process.env.REDIS_URL ?? "redis://red-ctm3nkrtq21c73f6b9bg:6379"; // url proporcionada por redis
+
+const client = createClient({
+    url : redis_url
+});
 
 client.on("error", err => console.log(`Se ha producido un error al conectar redis ${err}`))
 
