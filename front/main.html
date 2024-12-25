@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>PERRO SAPO CTM</title>
+  </head>
+  <body>
+    <script type="module">
+     import { io } from 'https://cdn.socket.io/4.3.2/socket.io.esm.min.js';
+     const chat_lista = document.getElementById("lista_chat")
+
+     const input_mensaje = document.getElementById("input_mensaje");
+    const form_mensaje = document.getElementById("form_mensaje");
+
+    const form_nombres = document.getElementById("formulario_nombres");
+    form_nombres.addEventListener("submit", (event) => {
+      const nombre_emisor = document.getElementById("nombre_emisor").value;
+      const nombre_destinatario = document.getElementById("nombre_destinatario").value;
+      if (nombre_emisor > nombre_destinatario) {
+         sessionStorage.setItem("nombre_clave_chat",nombre_emisor + ":" + nombre_destinatario)
+     } else {
+         sessionStorage.setItem("nombre_clave_chat",nombre_destinatario+ ":" + nombre_emisor)
+      }
+      console.log(nombre_destinatario+ ":" + nombre_emisor)
+      const socket = io({
+        auth: {
+          username: sessionStorage.getItem("nombre_clave_chat")
+        }
+      });
+
+      socket.on("mensaje", (msg) => {
+        let nuevo_mensaje = document.createElement("li")
+        lista_chat.appendChild(nuevo_mensaje);
+        nuevo_mensaje.innerText = msg;
+      })
+      function enviarMensaje(event) {
+        if (input_mensaje.value) {
+          socket.emit("mensaje",{"mensaje":input_mensaje.value,"nombre":nombre_emisor});
+          input_mensaje.value = "";
+        }
+        event.preventDefault();
+     }
+      form_mensaje.addEventListener("submit", (event) => {
+        enviarMensaje(event);
+      })
+      fetch(`http://localhost:6060/oldmessages/${sessionStorage.getItem("nombre_clave_chat")}`)
+       .then((response) => response.json()) //.json() devuelve una promesa por eso no puedo iterarlo directamente
+       .then((data) => {
+        for (const respuesta of data)  {
+          let nuevo_mensaje = document.createElement("li")
+          chat_lista.appendChild(nuevo_mensaje)
+          nuevo_mensaje.innerText = `${respuesta.message.nombre} : ${respuesta.message.mensaje}`
+          console.log(respuesta.message.mensaje)
+        }
+       })
+
+      document.getElementById("formulario_nombres").remove();
+      event.preventDefault();
+    })
+    
+
+    </script>
+    <h1>El chat del papu</h1>
+     <form id="formulario_nombres">
+       <h2>Nombre emisor:<input id="nombre_emisor" type="text"></h2>
+       <h2>Nombre destinatario:<input id="nombre_destinatario" type="text"></h2>
+       <button>Loguear chat</button>
+     </form>
+    <form id="form_mensaje">
+      <input type="text" id="input_mensaje" placeholder="Escribir mensaje...">
+      <button>Enviar mensaje</button>
+    </form>
+    <ul id="lista_chat"></ul>
+  </body>
+</html>
