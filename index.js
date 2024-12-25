@@ -21,7 +21,7 @@ const app = express();
 
 const server = createServer(app);
 
-const io = new Server(httpServer, {
+const io = new Server(server, {
   connectionStateRecovery: {
     // the backup duration of the sessions and the packets
     maxDisconnectionDuration: 4 * 1000,
